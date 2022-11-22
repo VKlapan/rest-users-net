@@ -2,10 +2,45 @@ var pgp = require("pg-promise")(/*options*/);
 var db = pgp("postgres://postgres:klapan2022klapan@localhost:5432/users-db");
 const fs = require("fs/promises");
 
+/* functions for endpoints */
+
 async function getUsers() {
   const users = await db
     .any(
       "select u.id, u.name, u.gender, ARRAY(select * from get_subscription_name(u.id)) as subscriptions from users u"
+    )
+    .catch(function (error) {
+      console.log("ERROR:", error);
+    });
+  return users;
+}
+
+async function getFriendsById(id, order_by = "name", order_type = "") {
+  const friends = await db
+    .any(
+      `select * from get_subscriptions(${id}) order by ${order_by} ${order_type}`
+    )
+    .catch(function (error) {
+      console.log("ERROR:", error);
+    });
+  return friends;
+}
+
+async function getTop5MaxFollowingUsers() {
+  const users = await db
+    .any(
+      "select u.name, array_length(r.subscriptions, 1) as subscriptions_counts from relations r, users u where u.id = r.id order by array_length(subscriptions, 1) desc limit 5"
+    )
+    .catch(function (error) {
+      console.log("ERROR:", error);
+    });
+  return users;
+}
+
+async function getNullFollowingUsers() {
+  const users = await db
+    .any(
+      "select u.name, array_length(r.subscriptions, 1) from relations r, users u where u.id = r.id and array_length(subscriptions, 1) = 2"
     )
     .catch(function (error) {
       console.log("ERROR:", error);
@@ -31,14 +66,7 @@ async function getSubsriptionsById(id) {
   return subscriptions;
 }
 
-async function getFriendsById(id) {
-  const friends = await db
-    .any(`select * from get_subscriptions(${id}) order by name`)
-    .catch(function (error) {
-      console.log("ERROR:", error);
-    });
-  return friends;
-}
+/* initialization functions */
 
 async function addUser(user) {
   await db.none(
@@ -75,6 +103,8 @@ module.exports = {
   getUserById,
   getSubsriptionsById,
   getFriendsById,
+  getTop5MaxFollowingUsers,
+  getNullFollowingUsers,
 };
 
 // CREATE TABLE public.relations (
