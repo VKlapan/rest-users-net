@@ -18,7 +18,7 @@ async function createUserList() {
     users.push({
       id: i,
       name: names[randomNameIndex],
-      gender: randomNameIndex % 2 === 0 ? "male" : "famale",
+      gender: randomNameIndex % 2 === 0 ? "male" : "female",
     });
 
     for (var j = 0; j <= randomSubscriptionQuantity; j += 1) {
