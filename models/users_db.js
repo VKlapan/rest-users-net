@@ -3,9 +3,13 @@ var db = pgp("postgres://postgres:klapan2022klapan@localhost:5432/users-db");
 const fs = require("fs/promises");
 
 async function getUsers() {
-  const users = await db.any("SELECT * FROM users").catch(function (error) {
-    console.log("ERROR:", error);
-  });
+  const users = await db
+    .any(
+      "select u.id, u.name, ARRAY(select * from get_subscribes(u.id)) as subscribes from users u"
+    )
+    .catch(function (error) {
+      console.log("ERROR:", error);
+    });
   return users;
 }
 
@@ -80,15 +84,31 @@ module.exports = {
 
 /*  
 
+/users  - endpoint для отримання усіх юзерів (з підписками).
+
+CREATE FUNCTION get_friends(int) RETURNS table (user_name varchar) AS $$
+DECLARE
+  x int;
+
+BEGIN
+  FOREACH x IN ARRAY array [(select subscriptions from relations where id = $1)]
+  loop
+	  return query (select name from users where id = x);
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+select u.id, u.name, ARRAY(select * from get_friends(u.id)) from users u
+
 /max-following - endpoint для отримання топ-5 юзерів, які зробили найбільше підписок.
 
-select id, subscriptions from relations order by array_length(subscriptions, 1) desc limit 5
+select u.name, array_length(r.subscriptions, 1) from relations r, users u where u.id = r.id order by array_length(subscriptions, 1) desc limit 5
 
  ----------------------
 
 /not-following - endpoint для отримання юзерів, якi зробили 0 підписок
 
-select id, subscriptions from relations where array_length(subscriptions, 1) = 0
+select u.name, array_length(r.subscriptions, 1) from relations r, users u where u.id = r.id and array_length(subscriptions, 1) = 2
 
  ----------------------
 
