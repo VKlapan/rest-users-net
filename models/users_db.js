@@ -5,7 +5,7 @@ const fs = require("fs/promises");
 async function getUsers() {
   const users = await db
     .any(
-      "select u.id, u.name, ARRAY(select * from get_subscribes(u.id)) as subscribes from users u"
+      "select u.id, u.name, u.gender, ARRAY(select * from get_subscription_name(u.id)) as subscriptions from users u"
     )
     .catch(function (error) {
       console.log("ERROR:", error);
