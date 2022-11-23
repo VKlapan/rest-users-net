@@ -1,5 +1,8 @@
 const fs = require("fs/promises");
+const { initUsersTable, initRelationsTable } = require("../models/users_db");
+
 const MAX_USERS_LIST_QUANTITY = 500;
+const MAX_SUBSRIPTIONS_QUANTITY = 150;
 
 const randomUsersQuantity = Math.round(Math.random() * MAX_USERS_LIST_QUANTITY);
 
@@ -10,9 +13,10 @@ async function createUserList() {
 
   for (var i = 0; i <= randomUsersQuantity; i += 1) {
     const randomNameIndex = Math.round(Math.random() * names.length);
-    const randomSubscriptionQuantity = Math.round(
-      Math.random() * randomUsersQuantity
-    );
+    const randomSubscriptionQuantity =
+      randomUsersQuantity < MAX_SUBSRIPTIONS_QUANTITY
+        ? Math.round(Math.random() * randomUsersQuantity)
+        : MAX_SUBSRIPTIONS_QUANTITY;
     const subscriptions = [];
 
     users.push({
@@ -39,8 +43,11 @@ async function createUserList() {
     });
   }
 
-  fs.writeFile("users.json", JSON.stringify(users));
-  fs.writeFile("relations.json", JSON.stringify(relations));
+  //  fs.writeFile("users.json", JSON.stringify(users));
+  //  fs.writeFile("relations.json", JSON.stringify(relations));
+
+  await initUsersTable(users);
+  await initRelationsTable(relations);
 
   return { users, relations };
 }
@@ -52,4 +59,4 @@ async function getNames() {
   return nameList.split("\n");
 }
 
-//createUserList().then(console.log);
+createUserList().then(console.log);

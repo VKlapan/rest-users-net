@@ -1,5 +1,9 @@
 var pgp = require("pg-promise")(/*options*/);
-var db = pgp("postgres://postgres:klapan2022klapan@localhost:5432/users-db");
+// var db = pgp("postgres://postgres:klapan2022klapan@localhost:5432/users-db");
+
+const db_credentials = `postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`;
+var db = pgp(db_credentials);
+
 const fs = require("fs/promises");
 
 /* functions for endpoints */
@@ -82,22 +86,21 @@ async function addRelation(relation) {
   );
 }
 
-async function initUsersTable() {
-  const response = await fs.readFile("../utils/users.json", "utf-8");
-  const users = JSON.parse(response);
+async function initUsersTable(users) {
+  //  const response = await fs.readFile("../utils/users.json", "utf-8");
+  //  const users = JSON.parse(response);
   users.map((user) => addUser(user));
 }
 
-async function initRelationsTable() {
-  const response = await fs.readFile("../utils/relations.json", "utf-8");
-  const relations = JSON.parse(response);
+async function initRelationsTable(relations) {
+  //  const response = await fs.readFile("../utils/relations.json", "utf-8");
+  //  const relations = JSON.parse(response);
   relations.map((relation) => addRelation(relation));
 }
 
-//initUsersTable();
-//initRelationsTable();
-
 module.exports = {
+  initUsersTable,
+  initRelationsTable,
   getUsers,
   addUser,
   getUserById,
