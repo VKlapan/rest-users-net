@@ -11,7 +11,7 @@ const fs = require("fs/promises");
 async function getUsers() {
   const users = await db
     .any(
-      "select u.id, u.name, u.gender, ARRAY(select * from get_subscription_name(u.id)) as subscriptions from users u"
+      "select u.id, u.first_name, u.gender, ARRAY(select * from get_subscription_name(u.id)) as subscriptions from users u"
     )
     .catch(function (error) {
       console.log("ERROR:", error);
@@ -19,7 +19,7 @@ async function getUsers() {
   return users;
 }
 
-async function getFriendsById(id, order_by = "name", order_type = "") {
+async function getFriendsById(id, order_by = "first_name", order_type = "") {
   const friends = await db
     .any(
       `select * from get_subscriptions(${id}) order by ${order_by} ${order_type}`
@@ -33,7 +33,7 @@ async function getFriendsById(id, order_by = "name", order_type = "") {
 async function getTop5MaxFollowingUsers() {
   const users = await db
     .any(
-      "select u.name, array_length(r.subscriptions, 1) as subscriptions_counts from relations r, users u where u.id = r.id order by array_length(subscriptions, 1) desc limit 5"
+      "select u.first_name, array_length(r.subscriptions, 1) as subscriptions_counts from relations r, users u where u.id = r.id order by array_length(subscriptions, 1) desc limit 5"
     )
     .catch(function (error) {
       console.log("ERROR:", error);
@@ -44,7 +44,7 @@ async function getTop5MaxFollowingUsers() {
 async function getNullFollowingUsers() {
   const users = await db
     .any(
-      "select u.name, array_length(r.subscriptions, 1) from relations r, users u where u.id = r.id and array_length(subscriptions, 1) = 2"
+      "select u.first_name, array_length(r.subscriptions, 1) from relations r, users u where u.id = r.id and array_length(subscriptions, 1) = 2"
     )
     .catch(function (error) {
       console.log("ERROR:", error);
@@ -74,7 +74,7 @@ async function getSubsriptionsById(id) {
 
 async function addUser(user) {
   await db.none(
-    "INSERT INTO users(name, gender) VALUES(${name}, ${gender})",
+    "INSERT INTO users(first_name, gender) VALUES(${name}, ${gender})",
     user
   );
 }
